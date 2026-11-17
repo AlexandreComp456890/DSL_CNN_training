@@ -11,7 +11,7 @@ caminho = (
 # Ler o código-fonte
 codigo = caminho.read_text(encoding="utf-8")
 
-# Criar o analisador léxico
+# Cria o analisador léxico
 lexer = criar_lexer()
 
 # Enviar o código para análise
