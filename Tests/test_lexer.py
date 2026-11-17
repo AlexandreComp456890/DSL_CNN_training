@@ -1,0 +1,1 @@
+# Contém os testes responsáveis por verificar o reconhecimento dos tokens da linguagem.

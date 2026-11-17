@@ -1,0 +1,1 @@
+# Realiza a análise semântica, verificando a validade dos parâmetros e das instruções.

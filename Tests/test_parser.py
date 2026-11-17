@@ -1,0 +1,1 @@
+# Contém os testes responsáveis por validar as regras sintáticas da DSL.

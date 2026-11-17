@@ -1,0 +1,1 @@
+# Define as estruturas utilizadas para representar os comandos na árvore sintática abstrata (AST).

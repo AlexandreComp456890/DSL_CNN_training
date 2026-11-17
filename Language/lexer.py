@@ -1,0 +1,1 @@
+# Realiza a análise léxica, identificando os tokens e as palavras reservadas da DSL.

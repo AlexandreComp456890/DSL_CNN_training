@@ -1,0 +1,1 @@
+# Responsável pela construção e configuração das camadas da rede neural convolucional.

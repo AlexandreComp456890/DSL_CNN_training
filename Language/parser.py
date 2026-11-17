@@ -1,0 +1,1 @@
+# Realiza a análise sintática, verificando se os comandos seguem a gramática definida.

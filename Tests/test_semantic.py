@@ -1,0 +1,1 @@
+# Contém os testes responsáveis por verificar as regras semânticas da linguagem.
