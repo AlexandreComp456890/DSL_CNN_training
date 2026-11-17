@@ -1,0 +1,3 @@
+DATASET "MNIST";
+MODEL CNN;
+TRAIN epochs=10;
