@@ -1,83 +1,114 @@
+
+"""Realiza a analise lexica, identificando os tokens da DSL para CNNs."""
+import ast
+import sys
 import ply.lex as lex
 
-# 1. Palavras reservadas
+# Palavras reservadas da linguagem
 reserved = {
-    "DATASET": "DATASET",
-    "SPLIT": "SPLIT",
-    "MODEL": "MODEL",
-    "CNN": "CNN",
-    "TRAIN": "TRAIN"
+    "DATASET": "DATASET",        # Define o conjunto de dados utilizado
+    "SPLIT": "SPLIT",            # Divide os dados em treino e validacao
+    "MODEL": "MODEL",            # Define a arquitetura do modelo
+    "CNN": "CNN",                # Identifica uma rede neural convolucional
+    "TRAIN": "TRAIN",            # Configura o treinamento do modelo
+    "EVALUATE": "EVALUATE",      # Avalia o desempenho do modelo
+    "SAVE": "SAVE",              # Salva o modelo treinado
+    "NORMALIZE": "NORMALIZE",    # Normaliza os valores dos dados
+    "AUGMENT": "AUGMENT",        # Aplica transformacoes nos dados de treino
+
+    # Camadas da CNN
+    "CONV": "CONV",              # Camada convolucional que extrai caracteristicas
+    "RELU": "RELU",              # Funcao de ativacao que introduz nao linearidade
+    "POOL": "POOL",              # Reduz as dimensoes dos mapas de caracteristicas
+    "FLATTEN": "FLATTEN",        # Converte os dados em um vetor unidimensional
+    "DENSE": "DENSE",            # Camada totalmente conectada de neuronios
+    "DROPOUT": "DROPOUT",        # Desativa neuronios aleatoriamente no treinamento
+
+    # Valores booleanos
+    "true": "TRUE",              # Representa o valor booleano verdadeiro
+    "false": "FALSE",            # Representa o valor booleano falso
 }
 
-# 2. Lista de tokens
+# Tokens reconhecidos pelo analisador lexico
 tokens = [
-    "ID",
-    "CTE_INT",
-    "CTE_FLOAT",
-    "CTE_STRING",
-    "IGUAL",
-    "PONTO_VIRGULA"
-] + list(reserved.values())
+    "ID",                       # Identificadores e nomes de parametros
+    "CTE_INT",                  # Constantes numericas inteiras
+    "CTE_FLOAT",                # Constantes numericas decimais
+    "CTE_STRING",               # Textos e caminhos entre aspas
+    "IGUAL",                    # Simbolo de atribuicao (=)
+    "PONTO_VIRGULA",            # Indica o fim de uma instrucao (;)
+    "ABRE_CHAVE",               # Indica o inicio de um bloco ({)
+    "FECHA_CHAVE",              # Indica o fim de um bloco (})
+] + list(reserved.values())      # Adiciona as palavras reservadas aos tokens
 
+# Simbolos da linguagem
+t_IGUAL = r"="
+t_PONTO_VIRGULA = r";"
+t_ABRE_CHAVE = r"\{"
+t_FECHA_CHAVE = r"\}"
 
-# 3. Símbolos da linguagem
-t_IGUAL = r'='
-t_PONTO_VIRGULA = r';'
+# Caracteres ignorados durante a analise
+t_ignore = " \t\r"
 
+# Ignora comentarios iniciados por # ou //
+def t_COMENTARIO(t):
+    r"\#[^\n]*|//[^\n]*"
+    pass
 
-# 4. Ignorar espaços e tabulações
-t_ignore = ' \t\r'
-
-
-# 5. Identificadores e palavras reservadas
-def t_ID(t):
-    r'[a-zA-Z_][a-zA-Z0-9_]*'
-
-    t.type = reserved.get(t.value, 'ID')
-    return t
-
-
-# 6. Strings
+# Reconhece strings e interpreta caracteres escapados
 def t_CTE_STRING(t):
-    r'"[^"\n]*"'
+    r'"([^"\\\n]|\\["\\nt])*"'
 
-    t.value = t.value[1:-1]
+    t.value = ast.literal_eval(t.value)
     return t
 
-
-# 7. Números decimais
+# Reconhece numeros decimais e notacao cientifica
 def t_CTE_FLOAT(t):
-    r'\d+\.\d+'
+    r"-?(?:(?:\d+\.\d*|\.\d+)(?:[eE][+-]?\d+)?|\d+[eE][+-]?\d+)"
 
     t.value = float(t.value)
     return t
 
-
-# 8. Números inteiros
+# Reconhece constantes numericas inteiras
 def t_CTE_INT(t):
-    r'\d+'
+    r"-?\d+"
 
     t.value = int(t.value)
     return t
 
+# Reconhece identificadores e palavras reservadas
+def t_ID(t):
+    r"[a-zA-Z_][a-zA-Z0-9_]*"
 
-# 9. Nova linha
+    t.type = reserved.get(t.value, "ID")
+    return t
+
+# Atualiza a contagem de linhas do codigo
 def t_newline(t):
-    r'\n+'
+    r"\n+"
 
     t.lexer.lineno += len(t.value)
 
-
-# 10. Tratamento de erros
+# Identifica caracteres invalidos e informa sua localizacao
 def t_error(t):
-    print(
-        f"Caractere inválido: {t.value[0]} "
-        f"na linha {t.lineno}"
+    linha = t.lineno
+
+    coluna = (
+        t.lexpos
+        - t.lexer.lexdata.rfind("\n", 0, t.lexpos)
     )
 
-    t.lexer.skip(1)
+    raise SyntaxError(
+        f"Erro lexico na linha {linha}, "
+        f"coluna {coluna}: "
+        f"caractere {t.value[0]!r}"
+    )
 
-
-# 11. Criar o analisador léxico
+# Cria uma nova instancia do analisador lexico
 def criar_lexer():
-    return lex.lex()
+    """Cria e retorna um analisador lexico configurado para a DSL."""
+
+    analisador = lex.lex(module=sys.modules[__name__])
+    analisador.lineno = 1
+
+    return analisador
